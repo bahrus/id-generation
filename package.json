@@ -1,0 +1,28 @@
+{
+  "name": "id-generation",
+  "version": "0.0.0",
+  "description": "generate id's automatically in the browser",
+  "keywords": [
+    "generate",
+    "id's",
+    "automatically",
+    "in",
+    "the",
+    "browser"
+  ],
+  "homepage": "https://github.com/bahrus/id-generation#readme",
+  "bugs": {
+    "url": "https://github.com/bahrus/id-generation/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bahrus/id-generation.git"
+  },
+  "license": "MIT",
+  "author": "Bruce B. Anderson <anderson.bruce.b@gmail.com>",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "playwrght test"
+  }
+}
