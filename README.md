@@ -327,7 +327,7 @@ This package utilizes the [following package](https://github.com/bahrus/mount-ob
 
 ```JavaScript
 const observer = new MountObserver({
-   whereElementMatches:'-id',
+   whereElementMatches:'[\\-id]',
    do: ({localName}, {modules, observer, observeInfo}) => {
       //generate the id's for the scoped ancestor
    }
