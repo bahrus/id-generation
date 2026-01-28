@@ -21,7 +21,8 @@
   "license": "MIT",
   "author": "Bruce B. Anderson <anderson.bruce.b@gmail.com>",
   "type": "module",
-  "main": "index.js",
+  "main": "genIds.js",
+  "module": "genIds.js",
   "scripts": {
     "test": "playwrght test"
   }

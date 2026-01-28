@@ -100,7 +100,7 @@ adjusts the DOM so as to become:
 
 Note that the numbers after gid- will vary depending on previous DOM elements that may have been processed by the ID generator.
 
-To avoid collisions between different fragments, a global counter is used, which increments within a synchronous section of code as far as obtaining the next id.
+To avoid collisions between different fragments, a single global counter is used (starting at 0), which increments within a synchronous section of code as far as obtaining the next id and persists across calls to genIds.
 
 Also note the use of the "disabled" attribute on the fieldset element, and the defer-🎚️ attributes, both of which get removed after the id auto generation completes.  The idea is that while the live DOM tree has these attributes, allowing user interactivity could be problematic before the id's are generated, so at a minimum, we should disable input elements, and prevent [enhancements from loading](https://github.com/WICG/webcomponents/issues/1000) until the id connection is established, scoped preferably by fieldset elements, or itemscope attributes, or the root document as a last resort.  
 
@@ -339,12 +339,12 @@ observer.observe(document);
 In the scenario where side effects are specified, such as 
 
 ```html
-<input datai-id="{{@ myName}}">
+<input data-id="{{@ myName}}">
 ```
 
 the name value "myName" is obtained by extracting the string between the last space and the last "}}".
 
-If a DOM element already has a non-empty string id, then this package will *not* change it, and will console.error information about the element.
+If a DOM element already has a non-empty string id, then this package will *not* change it, and will console.error information about the element.  Processing will not take place as generating the other attributes when applicable (name, itemprop, itemscope, class, part)
 
 No forward referencing will take place, putting the onus on the developer using this library to carefully place the -id attribute in such a location so that no forward referencing should be required.
 
