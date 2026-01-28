@@ -23,6 +23,16 @@
   "type": "module",
   "main": "genIds.js",
   "module": "genIds.js",
+  "exports": {
+    "./genIds.js": {
+      "types": "./genIds.ts",
+      "default": "./genIds.js"
+    },
+    "./autoObserve.js": {
+      "types": "./autoObserve.ts",
+      "default": "./autoObserve.js"
+    }
+  },
   "scripts": {
     "serve": "node ./node_modules/spa-ssi/serve.js",
     "test": "playwright test",
