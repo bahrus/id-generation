@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Debug Test</title>
+    <!-- #include virtual="/imports.html" -->
+</head>
+<body>
+    <fieldset disabled>
+        <input data-id="{{lhs}}">
+        <input data-id="{{rhs}}">
+        <template -id defer-🎚️ 🎚️='based on #{{lhs}} and #{{rhs}}.'>
+            <div>Test</div>
+        </template>
+    </fieldset>
+
+    <script type="module">
+        import { genIds } from '../genIds.js';
+        
+        console.log('Before genIds:');
+        const template = document.querySelector('template');
+        console.log('Template 🎚️ attribute:', template.getAttribute('🎚️'));
+        console.log('Template defer-🎚️ attribute:', template.getAttribute('defer-🎚️'));
+        
+        genIds(document.body);
+        
+        console.log('\nAfter genIds:');
+        console.log('Template 🎚️ attribute:', template.getAttribute('🎚️'));
+        console.log('Template defer-🎚️ attribute:', template.getAttribute('defer-🎚️'));
+        console.log('Input 1 ID:', document.querySelectorAll('input')[0].id);
+        console.log('Input 2 ID:', document.querySelectorAll('input')[1].id);
+    </script>
+</body>
+</html>

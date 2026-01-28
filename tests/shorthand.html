@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shorthand Attributes Test</title>
+    <!-- #include virtual="/imports.html" -->
+</head>
+<body>
+    <ways-of-science itemscope>
+        <carrot-nosed-woman #></carrot-nosed-woman>
+        <a-duck #></a-duck>
+        <template -id defer-🎚️
+            🎚️="on based on #{{carrot-nosed-woman}}::weight-change and #{{a-duck}}::molting."
+        >
+            <div>A witch!</div>
+        </template>
+    </ways-of-science>
+
+    <form>
+        <fieldset disabled>
+            <input name="isHappy" type="checkbox" @>
+            <template -id defer-🎚️ 🎚️='on when #{{isHappy}}.'>
+                <my-content></my-content>
+            </template>
+        </fieldset>
+    </form>
+
+    <form>
+        <fieldset disabled>
+            <data value="true" itemprop="isHappy" hidden |></data>
+            <template -id defer-🎚️ 🎚️='on when #{{isHappy}}.'>
+                <my-content></my-content>
+            </template>
+        </fieldset>
+    </form>
+
+    <script type="module">
+        import { genIds } from '../genIds.js';
+        genIds(document.body);
+    </script>
+</body>
+</html>

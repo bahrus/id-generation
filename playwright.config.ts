@@ -1,5 +1,5 @@
-// playwright.config.ts
 import { PlaywrightTestConfig, devices } from '@playwright/test';
+
 const config: PlaywrightTestConfig = {
   webServer: {
     command: 'npm run serve',

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basic ID Generation Test</title>
+    <!-- #include virtual="/imports.html" -->
+</head>
+<body>
+    <fieldset disabled>
+        <label>
+            LHS: <input data-id="{{lhs}}">
+        </label>
+        
+        <label for="rhs">
+            RHS: <input data-id="{{rhs}}">
+        </label>
+        
+        <template -id defer-🎚️ 🎚️='on if isEqual, based on #{{lhs}} and #{{rhs}}.'>
+            <div>LHS === RHS</div>
+        </template>
+    </fieldset>
+
+    <script type="module">
+        import { genIds } from '../genIds.js';
+        genIds(document.body);
+    </script>
+</body>
+</html>

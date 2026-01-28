@@ -107,7 +107,7 @@ Also note the use of the "disabled" attribute on the fieldset element, and the d
 So the rules of handling defer-* attributes are:
 
 1.  All than global attributes that expect id's (such as aria-labeledby, itemref, etc) will be checked for dynamic expressions like #{{lhs}}.
-2.  For custom attributes that contain a - in the name, the only attributes that will be checked for dynamic substitution are attributes that have a corresponding defer- prefix, where the attribute name starts with the name that one obtains by stripping defer-
+2.  For custom attributes that contain a - in the name, or an emoji, the only attributes that will be checked for dynamic substitution are attributes that have a corresponding defer- prefix, where the attribute name starts with the name that one obtains by stripping defer-
 
 So for example:
 
