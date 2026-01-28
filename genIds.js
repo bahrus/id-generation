@@ -19,22 +19,15 @@ export function genIds(container, options) {
  * Find all elements with -id attribute within the container
  */
 function findTriggerElements(container) {
-    if (!(container instanceof Element || container instanceof DocumentFragment || container instanceof ShadowRoot)) {
-        return [];
-    }
+    // Firefox doesn't support querySelectorAll with attribute names starting with dash
+    // Use getElementsByTagName('*') and filter instead
     const triggers = [];
-    const walker = document.createTreeWalker(container, NodeFilter.SHOW_ELEMENT, {
-        acceptNode: (node) => {
-            if (node instanceof Element && node.hasAttribute('-id')) {
-                return NodeFilter.FILTER_ACCEPT;
+    if ('querySelectorAll' in container && typeof container.querySelectorAll === 'function') {
+        const allElements = container.querySelectorAll('*');
+        for (const element of allElements) {
+            if (element.hasAttribute('-id')) {
+                triggers.push(element);
             }
-            return NodeFilter.FILTER_SKIP;
-        }
-    });
-    let currentNode;
-    while (currentNode = walker.nextNode()) {
-        if (currentNode instanceof Element) {
-            triggers.push(currentNode);
         }
     }
     return triggers;
@@ -76,25 +69,18 @@ function processScope(trigger, fallbackContainer) {
  */
 function collectElementsForIdGeneration(scope) {
     const elements = [];
-    const walker = document.createTreeWalker(scope, NodeFilter.SHOW_ELEMENT, {
-        acceptNode: (node) => {
-            if (!(node instanceof Element))
-                return NodeFilter.FILTER_SKIP;
-            // Check for data-id attribute
-            if (node.hasAttribute('data-id')) {
-                return NodeFilter.FILTER_ACCEPT;
-            }
-            // Check for shorthand attributes: #, @, |
-            if (node.hasAttribute('#') || node.hasAttribute('@') || node.hasAttribute('|')) {
-                return NodeFilter.FILTER_ACCEPT;
-            }
-            return NodeFilter.FILTER_SKIP;
+    // Firefox has issues with TreeWalker acceptNode objects
+    // Use querySelectorAll with manual filtering instead
+    const allElements = scope.querySelectorAll('*');
+    for (const element of allElements) {
+        // Check for data-id attribute
+        if (element.hasAttribute('data-id')) {
+            elements.push(element);
+            continue;
         }
-    });
-    let currentNode;
-    while (currentNode = walker.nextNode()) {
-        if (currentNode instanceof Element) {
-            elements.push(currentNode);
+        // Check for shorthand attributes: #, @, |
+        if (element.hasAttribute('#') || element.hasAttribute('@') || element.hasAttribute('|')) {
+            elements.push(element);
         }
     }
     return elements;
@@ -211,13 +197,13 @@ function applySideEffects(element, parsed) {
  */
 function collectAttributeReplacements(scope, nameToIdMap) {
     const replacements = [];
-    const walker = document.createTreeWalker(scope, NodeFilter.SHOW_ELEMENT);
-    let currentNode = scope;
-    do {
-        if (currentNode instanceof Element) {
-            processElementAttributes(currentNode, nameToIdMap, replacements);
-        }
-    } while (currentNode = walker.nextNode());
+    // Process the scope element itself
+    processElementAttributes(scope, nameToIdMap, replacements);
+    // Process all descendants
+    const allElements = scope.querySelectorAll('*');
+    for (const element of allElements) {
+        processElementAttributes(element, nameToIdMap, replacements);
+    }
     return replacements;
 }
 /**
@@ -314,19 +300,27 @@ function applyAttributeReplacements(replacements) {
  * Remove all defer-* attributes from elements in scope
  */
 function removeDeferAttributes(scope) {
-    const walker = document.createTreeWalker(scope, NodeFilter.SHOW_ELEMENT);
-    let currentNode = scope;
-    do {
-        if (currentNode instanceof Element) {
-            const attributesToRemove = [];
-            for (const attr of Array.from(currentNode.attributes)) {
-                if (attr.name.startsWith('defer-')) {
-                    attributesToRemove.push(attr.name);
-                }
-            }
-            for (const attrName of attributesToRemove) {
-                currentNode.removeAttribute(attrName);
+    // Process the scope element itself
+    const attributesToRemove = [];
+    for (const attr of Array.from(scope.attributes)) {
+        if (attr.name.startsWith('defer-')) {
+            attributesToRemove.push(attr.name);
+        }
+    }
+    for (const attrName of attributesToRemove) {
+        scope.removeAttribute(attrName);
+    }
+    // Process all descendants
+    const allElements = scope.querySelectorAll('*');
+    for (const element of allElements) {
+        const attrsToRemove = [];
+        for (const attr of Array.from(element.attributes)) {
+            if (attr.name.startsWith('defer-')) {
+                attrsToRemove.push(attr.name);
             }
         }
-    } while (currentNode = walker.nextNode());
+        for (const attrName of attrsToRemove) {
+            element.removeAttribute(attrName);
+        }
+    }
 }
