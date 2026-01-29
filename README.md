@@ -322,19 +322,40 @@ results in:
 
 ## Implementation notes
 
-This package utilizes the [following package](https://github.com/bahrus/mount-observer/tree/v2) to watch for DOM mutations, watching in particular for elements with attribute "-id":
+This package utilizes the [mount-observer package](https://github.com/bahrus/mount-observer/tree/v2) to watch for DOM mutations, watching in particular for elements with attribute "-id".
 
+### How it works
+
+When you call `genIds(container)`, it creates a new MountObserver instance that:
+
+1. **Observes the container** for elements with the `-id` attribute
+2. **Automatically processes existing elements** that already have `-id` in the DOM
+3. **Watches for dynamically added elements** with `-id` and processes them when mounted
 
 ```JavaScript
-const observer = new MountObserver({
-   whereElementMatches:'[\\-id]',
-   do: ({localName}, {modules, observer, observeInfo}) => {
-      //generate the id's for the scoped ancestor
+const mo = new MountObserver({
+   whereElementMatches: '[\\-id]',
+   do: (element) => {
+      // Process the scope for this trigger element
+      processScope(element, container);
    }
-   
-}, {disconnectedSignal: new AbortController().signal});
-observer.observe(document);
+});
+mo.observe(container);
 ```
+
+**Key insight**: MountObserver handles both existing and future elements automatically. You don't need to manually search for existing elements or maintain a global observer - each call to `genIds()` creates its own observer for the specified container.
+
+### Scope processing
+
+When an element with `-id` is found, the library:
+
+1. Finds the scope using `element.closest('fieldset,[itemscope]')` or falls back to the container
+2. Processes all elements within that scope that need ID generation
+3. Replaces `#{{name}}` references in attributes with the generated IDs
+4. Removes the `-id` attribute and any `defer-*` attributes
+5. Removes the `disabled` attribute from fieldsets
+
+### Side effects
 
 In the scenario where side effects are specified, such as 
 
@@ -344,7 +365,9 @@ In the scenario where side effects are specified, such as
 
 the name value "myName" is obtained by extracting the string between the last space and the last "}}".
 
-If a DOM element already has a non-empty string id, then this package will *not* change it, and will console.error information about the element.  Processing will not take place as generating the other attributes when applicable (name, itemprop, itemscope, class, part)
+### Constraints
+
+If a DOM element already has a non-empty string id, then this package will *not* change it, and will console.error information about the element. Processing will not take place for generating the other attributes when applicable (name, itemprop, itemscope, class, part).
 
 No forward referencing will take place, putting the onus on the developer using this library to carefully place the -id attribute in such a location so that no forward referencing should be required.
 

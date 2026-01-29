@@ -45,10 +45,10 @@ To re-enable Firefox testing, uncomment the Firefox project in `playwright.confi
 
 ## Implementation Notes
 
-The code has been refactored to avoid some Firefox-specific issues that were discovered:
+The implementation leverages MountObserver's built-in capabilities:
 
-- ✅ Replaced TreeWalker with `querySelectorAll('*')` for better compatibility
-- ✅ Use `hasAttribute()` filtering instead of CSS attribute selectors for special characters
-- ✅ Manual iteration instead of TreeWalker with acceptNode objects
+- ✅ **MountObserver handles both existing and dynamic elements** - No need for manual element searching or global observer management
+- ✅ **Simple per-container observers** - Each `genIds()` call creates its own MountObserver for the specified container
+- ✅ **Automatic processing** - MountObserver finds elements with `-id` attribute and triggers processing for both elements already in the DOM and those added later
 
-These changes improve compatibility across all browsers, not just Firefox.
+This approach is simpler and more reliable than maintaining global state or manually searching for elements.

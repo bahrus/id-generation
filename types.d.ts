@@ -1,7 +1,7 @@
 // Type definitions for id-generation
 
 export interface GenIdsOptions {
-    startCounter?: number;
+    //startCounter?: number;
 }
 
 export interface ParsedDataId {
