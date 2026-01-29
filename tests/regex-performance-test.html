@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regex Performance Test</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .winner {
+            background: #d4edda;
+            border: 2px solid #28a745;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .stat-box {
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 4px;
+        }
+        .stat-label {
+            font-weight: bold;
+            color: #495057;
+        }
+        .stat-value {
+            font-size: 1.2em;
+            color: #212529;
+        }
+    </style>
+</head>
+<body>
+    <h1>Regex Performance Test: Inline vs Constant</h1>
+    
+    <p>Testing the performance difference between defining a regex inline in a function vs defining it as a constant outside the function.</p>
+    
+    <div class="test-section">
+        <h2>Test Configuration</h2>
+        <label>
+            Number of iterations:
+            <input type="number" id="iterations" value="100000" min="1000" step="1000">
+        </label>
+        <br><br>
+        <label>
+            Test string complexity:
+            <select id="complexity">
+                <option value="simple">Simple (1 match)</option>
+                <option value="medium" selected>Medium (5 matches)</option>
+                <option value="complex">Complex (20 matches)</option>
+            </select>
+        </label>
+        <br><br>
+        <button onclick="runAllTests()">Run All Tests</button>
+        <button onclick="runTest1()">Test 1: Inline Regex</button>
+        <button onclick="runTest2()">Test 2: Constant Regex</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Results</h2>
+        <div id="results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Detailed Analysis</h2>
+        <div id="analysis"></div>
+    </div>
+
+    <script>
+        // Test strings of varying complexity
+        const testStrings = {
+            simple: 'on if isEqual, based on #{{lhs}} and something else.',
+            medium: 'on if isEqual, based on #{{lhs}} and #{{rhs}} and #{{foo}} and #{{bar}} and #{{baz}}.',
+            complex: Array(20).fill(0).map((_, i) => `#{{var${i}}}`).join(' and ') + '.'
+        };
+
+        // Constant regex (defined once)
+        const CONSTANT_REGEX = /#\{\{([^}]+)\}\}/g;
+
+        // Test 1: Inline regex (created each time)
+        function replaceWithInlineRegex(value) {
+            return value.replace(/#\{\{([^}]+)\}\}/g, (match, name) => {
+                return `#gid-${name.trim()}`;
+            });
+        }
+
+        // Test 2: Constant regex (reused)
+        function replaceWithConstantRegex(value) {
+            return value.replace(CONSTANT_REGEX, (match, name) => {
+                return `#gid-${name.trim()}`;
+            });
+        }
+
+        function runPerformanceTest(testFn, testName, iterations, testString) {
+            // Warm up
+            for (let i = 0; i < 100; i++) {
+                testFn(testString);
+            }
+
+            // Actual test
+            const start = performance.now();
+            for (let i = 0; i < iterations; i++) {
+                testFn(testString);
+            }
+            const end = performance.now();
+            
+            const duration = end - start;
+            const opsPerSecond = (iterations / duration) * 1000;
+            
+            return {
+                name: testName,
+                duration: duration.toFixed(3),
+                opsPerSecond: opsPerSecond.toFixed(0),
+                iterations
+            };
+        }
+
+        function runTest1() {
+            const iterations = parseInt(document.getElementById('iterations').value);
+            const complexity = document.getElementById('complexity').value;
+            const testString = testStrings[complexity];
+            
+            const result = runPerformanceTest(replaceWithInlineRegex, 'Inline Regex', iterations, testString);
+            displayResult(result, 'test1');
+        }
+
+        function runTest2() {
+            const iterations = parseInt(document.getElementById('iterations').value);
+            const complexity = document.getElementById('complexity').value;
+            const testString = testStrings[complexity];
+            
+            const result = runPerformanceTest(replaceWithConstantRegex, 'Constant Regex', iterations, testString);
+            displayResult(result, 'test2');
+        }
+
+        function displayResult(result, testId) {
+            const resultsDiv = document.getElementById('results');
+            const existingResult = document.getElementById(testId);
+            
+            const resultHTML = `
+                <div class="result" id="${testId}">
+                    <strong>${result.name}</strong><br>
+                    Duration: ${result.duration}ms<br>
+                    Operations/second: ${result.opsPerSecond}<br>
+                    Iterations: ${result.iterations.toLocaleString()}
+                </div>
+            `;
+            
+            if (existingResult) {
+                existingResult.outerHTML = resultHTML;
+            } else {
+                resultsDiv.innerHTML += resultHTML;
+            }
+        }
+
+        function runAllTests() {
+            const iterations = parseInt(document.getElementById('iterations').value);
+            const complexity = document.getElementById('complexity').value;
+            const testString = testStrings[complexity];
+            
+            // Clear previous results
+            document.getElementById('results').innerHTML = '<p>Running tests...</p>';
+            document.getElementById('analysis').innerHTML = '';
+            
+            // Run tests with a small delay to let UI update
+            setTimeout(() => {
+                const results = [];
+                
+                // Run each test multiple times for more accurate results
+                const runs = 5;
+                
+                for (let run = 0; run < runs; run++) {
+                    results.push(runPerformanceTest(replaceWithInlineRegex, 'Inline Regex', iterations, testString));
+                    results.push(runPerformanceTest(replaceWithConstantRegex, 'Constant Regex', iterations, testString));
+                }
+                
+                // Calculate averages
+                const inlineResults = results.filter(r => r.name === 'Inline Regex');
+                const constantResults = results.filter(r => r.name === 'Constant Regex');
+                
+                const avgInline = {
+                    name: 'Inline Regex (Average)',
+                    duration: (inlineResults.reduce((sum, r) => sum + parseFloat(r.duration), 0) / runs).toFixed(3),
+                    opsPerSecond: (inlineResults.reduce((sum, r) => sum + parseFloat(r.opsPerSecond), 0) / runs).toFixed(0),
+                    iterations
+                };
+                
+                const avgConstant = {
+                    name: 'Constant Regex (Average)',
+                    duration: (constantResults.reduce((sum, r) => sum + parseFloat(r.duration), 0) / runs).toFixed(3),
+                    opsPerSecond: (constantResults.reduce((sum, r) => sum + parseFloat(r.opsPerSecond), 0) / runs).toFixed(0),
+                    iterations
+                };
+                
+                // Display results
+                document.getElementById('results').innerHTML = '';
+                displayResult(avgInline, 'test1');
+                displayResult(avgConstant, 'test2');
+                
+                // Determine winner and show analysis
+                const inlineDuration = parseFloat(avgInline.duration);
+                const constantDuration = parseFloat(avgConstant.duration);
+                const difference = Math.abs(inlineDuration - constantDuration);
+                const percentDiff = ((difference / Math.max(inlineDuration, constantDuration)) * 100).toFixed(2);
+                
+                let winner, loser, winnerDuration, loserDuration;
+                if (inlineDuration < constantDuration) {
+                    winner = 'Inline Regex';
+                    loser = 'Constant Regex';
+                    winnerDuration = inlineDuration;
+                    loserDuration = constantDuration;
+                    document.getElementById('test1').classList.add('winner');
+                    document.getElementById('test2').classList.remove('winner');
+                } else {
+                    winner = 'Constant Regex';
+                    loser = 'Inline Regex';
+                    winnerDuration = constantDuration;
+                    loserDuration = inlineDuration;
+                    document.getElementById('test2').classList.add('winner');
+                    document.getElementById('test1').classList.remove('winner');
+                }
+                
+                const analysisHTML = `
+                    <div class="stats">
+                        <div class="stat-box">
+                            <div class="stat-label">Winner</div>
+                            <div class="stat-value">${winner}</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Performance Difference</div>
+                            <div class="stat-value">${percentDiff}%</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Time Saved per ${iterations.toLocaleString()} ops</div>
+                            <div class="stat-value">${difference.toFixed(3)}ms</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Test Runs</div>
+                            <div class="stat-value">${runs}</div>
+                        </div>
+                    </div>
+                    <p style="margin-top: 20px;">
+                        <strong>Conclusion:</strong> ${winner} is faster by ${percentDiff}%. 
+                        ${percentDiff < 5 ? 
+                            'The difference is negligible (< 5%) and unlikely to matter in practice.' : 
+                            percentDiff < 15 ?
+                            'The difference is small but measurable. Consider using the faster approach in hot code paths.' :
+                            'The difference is significant. Using the faster approach is recommended.'}
+                    </p>
+                    <p>
+                        <strong>Browser:</strong> ${navigator.userAgent}
+                    </p>
+                `;
+                
+                document.getElementById('analysis').innerHTML = analysisHTML;
+            }, 100);
+        }
+
+        // Run tests on load
+        window.addEventListener('load', () => {
+            console.log('Page loaded. Click "Run All Tests" to begin.');
+        });
+    </script>
+</body>
+</html>
