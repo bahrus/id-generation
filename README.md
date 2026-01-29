@@ -1,3 +1,8 @@
+[![Playwright Tests](https://github.com/bahrus/id-generation/actions/workflows/CI.yml/badge.svg)](https://github.com/bahrus/id-generation/actions/workflows/CI.yml)
+[![NPM version](https://badge.fury.io/js/id-generation.png)](http://badge.fury.io/js/id-generation)
+[![How big is this package in your project?](https://img.shields.io/bundlephobia/minzip/id-generation?style=for-the-badge)](https://bundlephobia.com/result?p=id-generation)
+<img src="http://img.badgesize.io/https://cdn.jsdelivr.net/npm/id-generation?compression=gzip">
+
 # id-generation
 
 Generate id's automatically in the browser
