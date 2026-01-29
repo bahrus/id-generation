@@ -1,7 +1,6 @@
 import { MountObserver } from 'mount-observer/MountObserver.js';
 // Use a truly global counter via Symbol.for to handle multiple module versions
 const COUNTER_KEY = Symbol.for('IZiYU8ZlkUGAeDxOl3S8AQ');
-const OBSERVER_KEY = Symbol.for('id-generation:global-observer:b4e8f3a1-9c2d-4e7b-8f1a-3d5c6e9a2b4f');
 // Initialize global counter if it doesn't exist
 if (typeof globalThis[COUNTER_KEY] !== 'number') {
     globalThis[COUNTER_KEY] = 0;
@@ -12,11 +11,6 @@ if (typeof globalThis[COUNTER_KEY] !== 'number') {
  * @param options - Optional configuration
  */
 export function genIds(container, options) {
-    // // Find all elements with -id attribute
-    // const triggers = findTriggerElements(container);
-    // for (const trigger of triggers) {
-    //     processScope(trigger, container);
-    // }
     const mo = new MountObserver({
         whereElementMatches: '[\\-id]',
         do: (element) => {
@@ -25,38 +19,6 @@ export function genIds(container, options) {
     });
     mo.observe(container);
 }
-/**
- * Find all elements with -id attribute within the container
- * Uses MountObserver for dynamic elements and manual search for existing elements
- */
-// function findTriggerElements(container: Node): Element[] {
-//     const triggers: Element[] = [];
-//     // Set up MountObserver if not already observing
-//     if (!(globalThis as any)[OBSERVER_KEY]) {
-//         (globalThis as any)[OBSERVER_KEY] = new MountObserver({
-//             whereElementMatches: '[\\-id]',
-//             do: (element: Element) => {
-//                 // Process the scope when a new element with -id is mounted
-//                 const scope = element.closest('fieldset,[itemscope]') || document;
-//                 if (scope instanceof Element || scope instanceof DocumentFragment || 
-//                     (typeof ShadowRoot !== 'undefined' && scope instanceof ShadowRoot)) {
-//                     processScope(element, scope);
-//                 }
-//             }
-//         });
-//         (globalThis as any)[OBSERVER_KEY].observe(document);
-//     }
-//     // Also find existing elements with -id attribute
-//     if ('querySelectorAll' in container && typeof container.querySelectorAll === 'function') {
-//         const allElements = (container as ParentNode).querySelectorAll('*');
-//         for (const element of allElements) {
-//             if (element.hasAttribute('-id')) {
-//                 triggers.push(element);
-//             }
-//         }
-//     }
-//     return triggers;
-// }
 /**
  * Process a scope starting from the trigger element
  */
