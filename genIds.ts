@@ -1,11 +1,14 @@
 import type { GenIdsOptions, ParsedDataId, ScopeInfo, AttributeReplacement } from './types.js';
 import { MountObserver } from 'mount-observer/MountObserver.js';
 
-// Global counter that persists across calls, starting at 0
-let globalCounter = 0;
+// Use a truly global counter via Symbol.for to handle multiple module versions
+const COUNTER_KEY = Symbol.for('id-generation:global-counter:b4e8f3a1-9c2d-4e7b-8f1a-3d5c6e9a2b4f');
+const OBSERVER_KEY = Symbol.for('id-generation:global-observer:b4e8f3a1-9c2d-4e7b-8f1a-3d5c6e9a2b4f');
 
-// Global MountObserver instance
-let globalObserver: MountObserver | undefined;
+// Initialize global counter if it doesn't exist
+if (typeof (globalThis as any)[COUNTER_KEY] !== 'number') {
+    (globalThis as any)[COUNTER_KEY] = 0;
+}
 
 /**
  * Generate IDs automatically for elements within a container
@@ -14,7 +17,7 @@ let globalObserver: MountObserver | undefined;
  */
 export function genIds(container: Node, options?: GenIdsOptions): void {
     if (options?.startCounter !== undefined) {
-        globalCounter = options.startCounter;
+        (globalThis as any)[COUNTER_KEY] = options.startCounter;
     }
 
     // Find all elements with -id attribute
@@ -33,8 +36,8 @@ function findTriggerElements(container: Node): Element[] {
     const triggers: Element[] = [];
     
     // Set up MountObserver if not already observing
-    if (!globalObserver) {
-        globalObserver = new MountObserver({
+    if (!(globalThis as any)[OBSERVER_KEY]) {
+        (globalThis as any)[OBSERVER_KEY] = new MountObserver({
             whereElementMatches: '[\\-id]',
             do: (element: Element) => {
                 // Process the scope when a new element with -id is mounted
@@ -45,7 +48,7 @@ function findTriggerElements(container: Node): Element[] {
                 }
             }
         });
-        globalObserver.observe(document);
+        (globalThis as any)[OBSERVER_KEY].observe(document);
     }
     
     // Also find existing elements with -id attribute
@@ -167,8 +170,8 @@ function processElementForId(element: Element, nameToIdMap: Map<string, string>)
         return;
     }
     
-    // Generate ID
-    const generatedId = `gid-${globalCounter++}`;
+    // Generate ID using the global counter
+    const generatedId = `gid-${(globalThis as any)[COUNTER_KEY]++}`;
     element.id = generatedId;
     
     // Store mapping
