@@ -14,7 +14,7 @@ if (typeof (globalThis as any)[COUNTER_KEY] !== 'number') {
  * @param container - The root node to process (Node, Element, DocumentFragment, or ShadowRoot)
  * @param options - Optional configuration
  */
-export function genIds(container: Node, options?: GenIdsOptions): void {
+export function genIds(container: Node, options?: GenIdsOptions): MountObserver {
 
     const mo = new MountObserver({
         whereElementMatches: '[\\-id]',
@@ -23,6 +23,7 @@ export function genIds(container: Node, options?: GenIdsOptions): void {
         }
     });
     mo.observe(container);
+    return mo;
 }
 
 

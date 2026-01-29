@@ -18,6 +18,7 @@ export function genIds(container, options) {
         }
     });
     mo.observe(container);
+    return mo;
 }
 /**
  * Process a scope starting from the trigger element
