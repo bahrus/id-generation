@@ -27,10 +27,6 @@
     "./genIds.js": {
       "types": "./genIds.ts",
       "default": "./genIds.js"
-    },
-    "./autoObserve.js": {
-      "types": "./autoObserve.ts",
-      "default": "./autoObserve.js"
     }
   },
   "scripts": {

@@ -1,7 +1,11 @@
 import type { GenIdsOptions, ParsedDataId, ScopeInfo, AttributeReplacement } from './types.js';
+import { MountObserver } from 'mount-observer/MountObserver.js';
 
 // Global counter that persists across calls, starting at 0
 let globalCounter = 0;
+
+// Global MountObserver instance
+let globalObserver: MountObserver | undefined;
 
 /**
  * Generate IDs automatically for elements within a container
@@ -23,12 +27,28 @@ export function genIds(container: Node, options?: GenIdsOptions): void {
 
 /**
  * Find all elements with -id attribute within the container
+ * Uses MountObserver for dynamic elements and manual search for existing elements
  */
 function findTriggerElements(container: Node): Element[] {
-    // Firefox doesn't support querySelectorAll with attribute names starting with dash
-    // Use getElementsByTagName('*') and filter instead
     const triggers: Element[] = [];
     
+    // Set up MountObserver if not already observing
+    if (!globalObserver) {
+        globalObserver = new MountObserver({
+            whereElementMatches: '[\\-id]',
+            do: (element: Element) => {
+                // Process the scope when a new element with -id is mounted
+                const scope = element.closest('fieldset,[itemscope]') || document;
+                if (scope instanceof Element || scope instanceof DocumentFragment || 
+                    (typeof ShadowRoot !== 'undefined' && scope instanceof ShadowRoot)) {
+                    processScope(element, scope);
+                }
+            }
+        });
+        globalObserver.observe(document);
+    }
+    
+    // Also find existing elements with -id attribute
     if ('querySelectorAll' in container && typeof container.querySelectorAll === 'function') {
         const allElements = (container as ParentNode).querySelectorAll('*');
         for (const element of allElements) {

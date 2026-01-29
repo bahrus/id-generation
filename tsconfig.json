@@ -10,7 +10,6 @@
 	},
 	"files": [
 		"genIds.ts",
-		"autoObserve.ts",
 		"types.d.ts"
 	],
 	"exclude":[
