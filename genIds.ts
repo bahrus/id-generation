@@ -1,4 +1,4 @@
-import type { ParsedDataId, AttributeReplacement } from './types.js';
+import type { ParsedDataId, AttributeReplacement } from './types/id-generation/types.js';
 
 // Use a truly global counter via Symbol.for to handle multiple module versions
 const COUNTER_KEY = Symbol.for('IZiYU8ZlkUGAeDxOl3S8AQ');

@@ -10,7 +10,7 @@
 	},
 	"files": [
 		"genIds.ts",
-		"types.d.ts"
+		"types/id-generation/types.d.ts"
 	],
 	"exclude":[
 		"node_modules"
