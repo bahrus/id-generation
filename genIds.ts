@@ -1,5 +1,4 @@
-import type { GenIdsOptions, ParsedDataId, ScopeInfo, AttributeReplacement } from './types.js';
-import { MountObserver } from 'mount-observer/MountObserver.js';
+import type { ParsedDataId, AttributeReplacement } from './types.js';
 
 // Use a truly global counter via Symbol.for to handle multiple module versions
 const COUNTER_KEY = Symbol.for('IZiYU8ZlkUGAeDxOl3S8AQ');
@@ -10,28 +9,11 @@ if (typeof (globalThis as any)[COUNTER_KEY] !== 'number') {
 }
 
 /**
- * Generate IDs automatically for elements within a container
- * @param container - The root node to process (Node, Element, DocumentFragment, or ShadowRoot)
- * @param options - Optional configuration
- */
-export function genIds(container: Node, options?: GenIdsOptions): MountObserver {
-
-    const mo = new MountObserver({
-        whereElementMatches: '[\\-id]',
-        do: (element: Element) => {
-            processScope(element, container);
-        }
-    });
-    mo.observe(container);
-    return mo;
-}
-
-
-
-/**
  * Process a scope starting from the trigger element
+ * @param trigger - Element with -id attribute that triggers processing
+ * @param fallbackContainer - Fallback container if no scope element is found
  */
-function processScope(trigger: Element, fallbackContainer: Node): void {
+export function genIds(trigger: Element, fallbackContainer: Node): void {
     // Find the scope element using .closest()
     const scopeElement = trigger.closest('fieldset,[itemscope]') || 
                         (fallbackContainer instanceof Element ? fallbackContainer : 
