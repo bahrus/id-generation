@@ -1,6 +1,6 @@
 {
   "name": "id-generation",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "generate id's automatically in the browser",
   "keywords": [
     "generate",
