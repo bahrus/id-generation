@@ -25,7 +25,11 @@
 
     <script type="module">
         import { genIds } from '../genIds.js';
-        genIds(document.body);
+        // Find the trigger element (element with -id attribute)
+        const trigger = document.querySelector('[-id]');
+        if (trigger) {
+            genIds(trigger, document.body);
+        }
     </script>
 </body>
 </html>

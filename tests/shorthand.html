@@ -37,7 +37,11 @@
 
     <script type="module">
         import { genIds } from '../genIds.js';
-        genIds(document.body);
+        // Process each scope separately
+        const triggers = document.querySelectorAll('[-id]');
+        triggers.forEach(trigger => {
+            genIds(trigger, document.body);
+        });
     </script>
 </body>
 </html>
