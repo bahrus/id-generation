@@ -327,28 +327,92 @@ results in:
 
 ## Implementation notes
 
-This package utilizes the [mount-observer package](https://github.com/bahrus/mount-observer/tree/v2) to watch for DOM mutations, watching in particular for elements with attribute "-id".
+### Dependency Architecture
 
-### How it works
+**Important**: The dependency relationship between `id-generation` and `mount-observer` has been reversed from earlier versions.
 
-When you call `genIds(container)`, it creates a new MountObserver instance that:
+Previously, `id-generation` depended on `mount-observer` and created its own MountObserver instances. Now:
 
-1. **Observes the container** for elements with the `-id` attribute
-2. **Automatically processes existing elements** that already have `-id` in the DOM
-3. **Watches for dynamically added elements** with `-id` and processes them when mounted
+- **id-generation** is a standalone package with no dependencies
+- **mount-observer** depends on `id-generation` and provides a built-in handler
+- The `genIds()` function is a pure utility that processes a scope synchronously
+
+This architecture change provides several benefits:
+1. **Lighter weight**: `id-generation` can be used independently without the mount-observer overhead
+2. **More flexible**: You can call `genIds()` directly or use the mount-observer handler
+3. **Better separation of concerns**: ID generation logic is isolated from DOM observation
+
+### Using genIds directly
+
+The `genIds()` function is a synchronous utility that processes a single scope:
 
 ```JavaScript
-const mo = new MountObserver({
-   whereElementMatches: '[\\-id]',
-   do: (element) => {
-      // Process the scope for this trigger element
-      processScope(element, container);
-   }
-});
-mo.observe(container);
+import { genIds } from 'id-generation/genIds.js';
+
+// Process a scope when triggered by an element with -id
+const trigger = document.querySelector('[-id]');
+genIds(trigger, document);
 ```
 
-**Key insight**: MountObserver handles both existing and future elements automatically. You don't need to manually search for existing elements or maintain a global observer - each call to `genIds()` creates its own observer for the specified container.
+**Parameters:**
+- `trigger`: Element with `-id` attribute that triggers processing
+- `fallbackContainer`: Node to use as scope if no fieldset/[itemscope] ancestor is found
+
+**What it does:**
+1. Finds the scope using `trigger.closest('fieldset,[itemscope]')` or uses fallbackContainer
+2. Collects all elements with `data-id`, `#`, `@`, or `|` attributes
+3. Generates unique IDs for each element
+4. Replaces `#{{name}}` references in attributes with generated IDs
+5. Removes `-id` and `defer-*` attributes
+6. Removes `disabled` from fieldsets
+
+### Using the mount-observer handler
+
+For automatic, continuous observation of the DOM, use the `builtIns.generateIds` handler:
+
+```JavaScript
+import { MountObserver } from 'mount-observer';
+
+const observer = new MountObserver({
+   do: 'builtIns.generateIds'
+});
+observer.observe(document);
+```
+
+**How it works:**
+
+1. The handler automatically matches elements with `[-id]` attribute (via static properties)
+2. When an element with `-id` is mounted, the handler calls `genIds(element, rootNode)`
+3. The scope is processed and IDs are generated
+4. The observer continues watching for new `[-id]` elements
+
+**Benefits of the handler:**
+- Automatic observation of the entire document or a subtree
+- Handles both existing and dynamically added elements
+- Integrates with other mount-observer features (imports, lifecycle hooks, etc.)
+- Can be configured declaratively using `<script type="mountobserver">` elements
+
+**Declarative usage:**
+
+```html
+<script type="mountobserver">
+{
+    "do": "builtIns.generateIds"
+}
+</script>
+
+<script type="module">
+    import { MountObserver } from 'mount-observer';
+    
+    new MountObserver({
+        do: 'builtIns.mountObserverScript'
+    }).observe(document);
+</script>
+```
+
+**Key insight**: The mount-observer handler provides continuous observation, while calling `genIds()` directly is a one-time synchronous operation. Choose based on your needs:
+- Use `genIds()` directly for one-time processing or custom observation logic
+- Use the mount-observer handler for automatic, continuous observation
 
 ### Scope processing
 
