@@ -27,11 +27,25 @@ where oElementContainer is a Node / Element / DocumentFragment / ShadowRoot.
 
 ## Activation
 
-To activate a scoped id generation, add attribute -id, ideally to the last streamed element inside either the fieldset element, or an element adorned by the itemscope attribute, or the (Shadow) root.  No other attribute will trigger any id substitution on that scope (starting from the closest matching ancestor of the css query "fieldset,[itemscope]" based on the ".closest()" api call built into modern browsers). 
+To activate a scoped id generation, add attribute -id, ideally to the last streamed element inside a scope container.  No other attribute will trigger any id substitution on that scope.
 
-If the element with -id attribute is not contained within a fieldset element nor an element with attribute "itemscope", then the "scope" of the id generation will be based on that passed in oElementContainer.
+### Scope Resolution
 
-If the element with -id is not the last streamed element, then the functionality will likely work the same, but may possibly miss some elements after the attribute, in the unlikely event that the auto generated id's are created prior to some additional elements streaming in.  The implementation of the auto generation id's doesn't do anything special based on the placement within the fieldset element or itemscope adorned attribute.
+The scope is determined by walking up from the trigger element (the one with `-id`) using `.closest()`, with the following priority:
+
+1. **`[id-scope]`** — An explicit scope boundary defined by the developer. Use this when the default semantic containers don't fit your layout. It's a simple boolean attribute:
+   ```html
+   <div id-scope>
+       <input data-id="{{username}}">
+       <template -id defer-🎚️ 🎚️='validate #{{username}}'>...</template>
+   </div>
+   ```
+2. **`fieldset` or `[itemscope]`** — Semantic HTML containers that naturally represent groups of related elements.
+3. **Fallback to the root container** — If neither of the above matches, the scope falls back to the `oElementContainer` passed into `genIds()`. The developer called `genIds(trigger, container)` for a reason — we trust that intent.
+
+The `id-scope` attribute parallels `itemscope` and gives developers explicit control without requiring semantic overloading. Unlike adding a `fieldset` or `itemscope` where one isn't warranted, `id-scope` carries no other browser-level semantics — it exists purely to declare "this element is a scope boundary for ID generation."
+
+If the element with -id is not the last streamed element, then the functionality will likely work the same, but may possibly miss some elements after the attribute, in the unlikely event that the auto generated id's are created prior to some additional elements streaming in.  The implementation of the auto generation id's doesn't do anything special based on the placement within the scope container.
 
 ## Example 1
 
@@ -107,7 +121,7 @@ Note that the numbers after gid- will vary depending on previous DOM elements th
 
 To avoid collisions between different fragments, a single global counter is used (starting at 0), which increments within a synchronous section of code as far as obtaining the next id and persists across calls to genIds.
 
-Also note the use of the "disabled" attribute on the fieldset element, and the defer-🎚️ attributes, both of which get removed after the id auto generation completes.  The idea is that while the live DOM tree has these attributes, allowing user interactivity could be problematic before the id's are generated, so at a minimum, we should disable input elements, and prevent [enhancements from loading](https://github.com/WICG/webcomponents/issues/1000) until the id connection is established, scoped preferably by fieldset elements, or itemscope attributes, or the root document as a last resort.  
+Also note the use of the "disabled" attribute on the fieldset element, and the defer-🎚️ attributes, both of which get removed after the id auto generation completes.  The idea is that while the live DOM tree has these attributes, allowing user interactivity could be problematic before the id's are generated, so at a minimum, we should disable input elements, and prevent [enhancements from loading](https://github.com/WICG/webcomponents/issues/1000) until the id connection is established, scoped by `[id-scope]` elements, fieldset elements, `[itemscope]` elements, or the root container as a fallback.  
 
 So the rules of handling defer-* attributes are:
 
@@ -359,7 +373,7 @@ genIds(trigger, document);
 - `fallbackContainer`: Node to use as scope if no fieldset/[itemscope] ancestor is found
 
 **What it does:**
-1. Finds the scope using `trigger.closest('fieldset,[itemscope]')` or uses fallbackContainer
+1. Finds the scope using `trigger.closest('[id-scope],fieldset,[itemscope]')` or uses fallbackContainer
 2. Collects all elements with `data-id`, `#`, `@`, or `|` attributes
 3. Generates unique IDs for each element
 4. Replaces `#{{name}}` references in attributes with generated IDs
@@ -418,7 +432,7 @@ observer.observe(document);
 
 When an element with `-id` is found, the library:
 
-1. Finds the scope using `element.closest('fieldset,[itemscope]')` or falls back to the container
+1. Finds the scope using `element.closest('[id-scope],fieldset,[itemscope]')` or falls back to the container
 2. Processes all elements within that scope that need ID generation
 3. Replaces `#{{name}}` references in attributes with the generated IDs
 4. Removes the `-id` attribute and any `defer-*` attributes
@@ -441,5 +455,19 @@ If a DOM element already has a non-empty string id, then this package will *not*
 No forward referencing will take place, putting the onus on the developer using this library to carefully place the -id attribute in such a location so that no forward referencing should be required.
 
 The defer-* and disabled attributes are only removed after all processing for the scoped DOM element has finished.
+
+## Viewing Locally
+
+Any web server that serves static files with server-side includes will do but...
+
+1. Install git
+2. Fork/clone this repo
+3. Install node.js
+4. Open command window to folder where you cloned this repo
+5. > git submodule add https://github.com/bahrus/types.git types
+6. > git submodule update --init --recursive
+7. > npm install
+8. > npm run serve
+9. Open http://localhost:8000/demo/ in a modern browser
 
 

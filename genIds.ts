@@ -14,11 +14,14 @@ if (typeof (globalThis as any)[COUNTER_KEY] !== 'number') {
  * @param fallbackContainer - Fallback container if no scope element is found
  */
 export function genIds(trigger: Element, fallbackContainer: Node): void {
-    // Find the scope element using .closest()
-    const scopeElement = trigger.closest('fieldset,[itemscope]') || 
+    // Find the scope element using .closest() with the following priority:
+    // 1. [id-scope] - explicit developer-defined scope boundary
+    // 2. fieldset, [itemscope] - semantic HTML containers
+    // 3. fallbackContainer - the root node passed in by the developer
+    const scopeElement = trigger.closest('[id-scope],fieldset,[itemscope]') || 
                         (fallbackContainer instanceof Element ? fallbackContainer : 
-                         fallbackContainer instanceof DocumentFragment || fallbackContainer instanceof ShadowRoot ? 
-                         null : null);
+                         fallbackContainer instanceof Document ? fallbackContainer.documentElement :
+                         null);
     
     if (!scopeElement) {
         console.warn('No scope element found for trigger', trigger);
